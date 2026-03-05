@@ -158,7 +158,13 @@ const app = {
     if (txnId) {
       await API.updateTransaction(txnId, data);
     } else {
-      await API.addTransaction(data);
+      const months = Math.min(24, Math.max(1, parseInt(document.getElementById('input-recurrence').value) || 1));
+      const baseDate = data.date;
+      for (let i = 0; i < months; i++) {
+        const d = baseDate.split('-').map(Number);
+        const date = new Date(d[0], d[1] - 1 + i, d[2]);
+        await API.addTransaction({ ...data, date: date.toISOString().slice(0, 10) });
+      }
     }
     this.resetTransactionForm();
     await this.loadMonths();
@@ -173,6 +179,8 @@ const app = {
     document.getElementById('input-due-date').value = '';
     document.getElementById('input-planned-payment').value = '';
     document.getElementById('input-type').value = 'expense';
+    document.getElementById('input-recurrence').value = '1';
+    document.getElementById('recurrence-wrap').classList.remove('hidden');
     this.updateTxnBadges('expense');
     this.populateCategories();
     this.pendingAttachment = null;
@@ -227,6 +235,7 @@ const app = {
     document.getElementById('remove-attachment').classList.toggle('hidden', !full.attachment);
     document.getElementById('transaction-submit').textContent = 'Save';
     document.getElementById('transaction-cancel').classList.remove('hidden');
+    document.getElementById('recurrence-wrap').classList.add('hidden');
   },
   cancelTransactionEdit() {
     this.resetTransactionForm();
