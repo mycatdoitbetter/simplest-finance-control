@@ -14,15 +14,24 @@
     <details class="mb-8">
       <summary class="cursor-pointer font-medium text-slate-700 hover:text-slate-900">Categories</summary>
       <div class="mt-4 bg-white rounded-lg shadow p-4">
-        <form id="form-category" class="flex flex-wrap gap-2 mb-4">
+        <form id="form-category" class="flex flex-wrap items-end gap-4 mb-4">
+          <input type="hidden" id="category-type">
           <input type="hidden" id="category-id">
-          <input type="text" id="category-name" placeholder="Name" required class="rounded border border-slate-300 px-3 py-1.5 text-sm w-40">
-          <select id="category-type" required class="rounded border border-slate-300 px-3 py-1.5 text-sm">
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
-          </select>
-          <button type="submit" id="category-submit" class="bg-slate-700 text-white px-4 py-1.5 rounded text-sm hover:bg-slate-600">Add</button>
-          <button type="button" id="category-cancel" class="hidden border border-slate-300 px-4 py-1.5 rounded text-sm hover:bg-slate-50">Cancel</button>
+          <div>
+            <label class="block text-xs text-slate-600 mb-1">Tipo</label>
+            <div class="flex gap-1">
+              <button type="button" data-type="income" class="type-badge px-3 py-1.5 rounded text-sm border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100">Income</button>
+              <button type="button" data-type="expense" class="type-badge px-3 py-1.5 rounded text-sm border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100">Expense</button>
+            </div>
+          </div>
+          <div>
+            <label for="category-name" class="block text-xs text-slate-600 mb-1">Nome</label>
+            <input type="text" id="category-name" placeholder="Nome da categoria" required class="rounded border border-slate-300 px-3 py-1.5 text-sm w-48">
+          </div>
+          <div class="flex gap-2">
+            <button type="submit" id="category-submit" class="bg-slate-700 text-white px-4 py-1.5 rounded text-sm hover:bg-slate-600">Add</button>
+            <button type="button" id="category-cancel" class="hidden border border-slate-300 px-4 py-1.5 rounded text-sm hover:bg-slate-50 ml-2">Cancel</button>
+          </div>
         </form>
         <div class="flex items-center gap-4 mb-2">
           <button type="button" id="bulk-delete-categories" class="hidden text-sm text-rose-600 hover:text-rose-700">Delete selected</button>
@@ -62,58 +71,68 @@
       <div class="bg-white rounded-lg shadow p-4">
         <h2 class="font-medium text-slate-700 mb-4">Transactions</h2>
           <div id="month-tabs" class="flex flex-wrap gap-1 mb-4 overflow-x-auto"></div>
-          <form id="form-transaction" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
+          <form id="form-transaction" class="space-y-4 mb-4">
             <input type="hidden" id="transaction-id">
-            <div>
-              <label for="input-date" class="block text-xs text-slate-600 mb-0.5">Data</label>
-              <input type="date" id="input-date" required class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
-            </div>
-            <div>
-              <label for="input-type" class="block text-xs text-slate-600 mb-0.5">Tipo</label>
-              <select id="input-type" required class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
-                <option value="income">Income</option>
-                <option value="expense">Expense</option>
-              </select>
-            </div>
-            <div>
-              <label for="input-category" class="block text-xs text-slate-600 mb-0.5">Categoria</label>
-              <select id="input-category" required class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full min-w-0"></select>
-            </div>
-            <div>
-              <label for="input-amount" class="block text-xs text-slate-600 mb-0.5">Valor</label>
-              <input type="number" id="input-amount" step="0.01" required class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
-            </div>
-            <div>
-              <label for="input-due-date" class="block text-xs text-slate-600 mb-0.5">Vencimento</label>
-              <input type="date" id="input-due-date" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
-            </div>
-            <div>
-              <label for="input-pix-key" class="block text-xs text-slate-600 mb-0.5">Chave PIX</label>
-              <input type="text" id="input-pix-key" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
-            </div>
-            <div>
-              <label for="input-barcode" class="block text-xs text-slate-600 mb-0.5">Cod. boleto</label>
-              <input type="text" id="input-barcode" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
-            </div>
-            <div>
-              <label for="input-planned-payment" class="block text-xs text-slate-600 mb-0.5">Pag. planejado</label>
-              <input type="date" id="input-planned-payment" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
-            </div>
-            <div class="col-span-2">
-              <label for="input-notes" class="block text-xs text-slate-600 mb-0.5">Notas</label>
-              <input type="text" id="input-notes" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
-            </div>
-            <div>
-              <label for="input-attachment" class="block text-xs text-slate-600 mb-0.5">PDF</label>
-              <div class="flex gap-1 items-center">
-                <input type="file" id="input-attachment" accept="application/pdf" class="rounded border border-slate-300 px-2 py-1 text-sm flex-1 text-slate-600 file:mr-2 file:rounded file:border-0 file:bg-slate-100 file:px-3 file:py-1 file:text-sm">
-                <button type="button" id="remove-attachment" class="hidden text-xs text-rose-600 hover:text-rose-700">Remover</button>
+            <input type="hidden" id="input-type">
+            <div class="flex flex-wrap gap-6 items-end">
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">Tipo</label>
+                <div class="flex gap-1">
+                  <button type="button" data-type="income" class="txn-type-badge px-3 py-1.5 rounded text-sm border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100">Income</button>
+                  <button type="button" data-type="expense" class="txn-type-badge px-3 py-1.5 rounded text-sm border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100">Expense</button>
+                </div>
               </div>
-              <p id="attachment-name" class="text-xs text-slate-500 mt-0.5 hidden"></p>
+              <div>
+                <label for="input-date" class="block text-xs text-slate-600 mb-1">Data</label>
+                <input type="text" id="input-date" placeholder="dd/mm/aaaa" required maxlength="10" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-28">
+              </div>
+              <div>
+                <label for="input-category" class="block text-xs text-slate-600 mb-1">Categoria</label>
+                <select id="input-category" required class="rounded border border-slate-300 px-3 py-1.5 text-sm w-40 min-w-0"></select>
+              </div>
+              <div>
+                <label for="input-amount" class="block text-xs text-slate-600 mb-1">Valor</label>
+                <input type="number" id="input-amount" step="0.01" required class="rounded border border-slate-300 px-3 py-1.5 text-sm w-28">
+              </div>
             </div>
-            <div class="flex items-end">
-              <button type="submit" id="transaction-submit" class="bg-slate-700 text-white px-4 py-1.5 rounded text-sm hover:bg-slate-600">Add</button>
-              <button type="button" id="transaction-cancel" class="hidden border border-slate-300 px-4 py-1.5 rounded text-sm hover:bg-slate-50 ml-2">Cancel</button>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label for="input-due-date" class="block text-xs text-slate-600 mb-1">Vencimento</label>
+                <input type="text" id="input-due-date" placeholder="dd/mm/aaaa" maxlength="10" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
+              </div>
+              <div>
+                <label for="input-planned-payment" class="block text-xs text-slate-600 mb-1">Pag. planejado</label>
+                <input type="text" id="input-planned-payment" placeholder="dd/mm/aaaa" maxlength="10" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
+              </div>
+              <div>
+                <label for="input-pix-key" class="block text-xs text-slate-600 mb-1">Chave PIX</label>
+                <input type="text" id="input-pix-key" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
+              </div>
+              <div>
+                <label for="input-barcode" class="block text-xs text-slate-600 mb-1">Cod. boleto</label>
+                <input type="text" id="input-barcode" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-4 items-end">
+              <div class="flex-1 min-w-[200px]">
+                <label for="input-notes" class="block text-xs text-slate-600 mb-1">Notas</label>
+                <input type="text" id="input-notes" class="rounded border border-slate-300 px-3 py-1.5 text-sm w-full">
+              </div>
+              <div class="flex items-end gap-2">
+                <div>
+                  <label for="input-attachment" class="block text-xs text-slate-600 mb-1">PDF</label>
+                  <div class="flex items-center gap-2">
+                    <label class="cursor-pointer rounded border border-slate-300 px-3 py-1.5 text-sm bg-slate-50 hover:bg-slate-100 text-slate-700">
+                      <input type="file" id="input-attachment" accept="application/pdf" class="hidden">
+                      Anexar
+                    </label>
+                    <span id="attachment-name" class="text-xs text-slate-500 hidden"></span>
+                    <button type="button" id="remove-attachment" class="hidden text-xs text-rose-600 hover:text-rose-700">Remover</button>
+                  </div>
+                </div>
+                <button type="submit" id="transaction-submit" class="bg-slate-700 text-white px-4 py-1.5 rounded text-sm hover:bg-slate-600">Add</button>
+                <button type="button" id="transaction-cancel" class="hidden border border-slate-300 px-4 py-1.5 rounded text-sm hover:bg-slate-50">Cancel</button>
+              </div>
             </div>
           </form>
           <div class="flex items-center gap-4 mb-2">

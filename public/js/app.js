@@ -1,5 +1,16 @@
 const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
+function toYMD(s) {
+  if (!s) return '';
+  const m = String(s).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : s;
+}
+function toDMY(s) {
+  if (!s) return '';
+  const [y, m, d] = String(s).split('-');
+  return y && m && d ? `${d}/${m}/${y}` : s;
+}
+
 const app = {
   categories: [],
   months: [],
@@ -8,8 +19,12 @@ const app = {
   pendingAttachment: null,
   async init() {
     this.categories = await API.categories();
+    this.setupCategoryBadges();
+    this.setupTransactionBadges();
     this.populateCategories();
-    document.getElementById('input-type').addEventListener('change', () => this.populateCategories());
+    document.getElementById('input-date').addEventListener('input', (e) => this.maskDate(e.target));
+    document.getElementById('input-due-date').addEventListener('input', (e) => this.maskDate(e.target));
+    document.getElementById('input-planned-payment').addEventListener('input', (e) => this.maskDate(e.target));
     document.getElementById('input-attachment').addEventListener('change', (e) => this.handleFileSelect(e));
     document.getElementById('remove-attachment').addEventListener('click', () => this.removeAttachment());
     document.getElementById('form-transaction').addEventListener('submit', (e) => this.handleSubmit(e));
@@ -23,6 +38,48 @@ const app = {
     await this.loadMonths();
     await this.load();
   },
+  setupCategoryBadges() {
+    document.getElementById('category-type').value = 'expense';
+    document.querySelectorAll('.type-badge').forEach(b => {
+      b.className = b.dataset.type === 'expense' ? 'type-badge px-3 py-1.5 rounded text-sm bg-rose-100 text-rose-700 border-rose-300 border' : 'type-badge px-3 py-1.5 rounded text-sm border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100';
+    });
+    document.querySelectorAll('.type-badge').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const t = btn.dataset.type;
+        document.getElementById('category-type').value = t;
+        document.querySelectorAll('.type-badge').forEach(b => {
+          b.className = b.dataset.type === t
+            ? `type-badge px-3 py-1.5 rounded text-sm ${t === 'income' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-rose-100 text-rose-700 border-rose-300'} border`
+            : 'type-badge px-3 py-1.5 rounded text-sm border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100';
+        });
+      });
+    });
+  },
+  setupTransactionBadges() {
+    document.getElementById('input-type').value = 'expense';
+    this.updateTxnBadges('expense');
+    document.querySelectorAll('.txn-type-badge').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const t = btn.dataset.type;
+        document.getElementById('input-type').value = t;
+        this.updateTxnBadges(t);
+        this.populateCategories();
+      });
+    });
+  },
+  updateTxnBadges(type) {
+    document.querySelectorAll('.txn-type-badge').forEach(b => {
+      b.className = b.dataset.type === type
+        ? `txn-type-badge px-3 py-1.5 rounded text-sm ${type === 'income' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-rose-100 text-rose-700 border-rose-300'} border`
+        : 'txn-type-badge px-3 py-1.5 rounded text-sm border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100';
+    });
+  },
+  maskDate(el) {
+    let v = el.value.replace(/\D/g, '').slice(0, 8);
+    if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+    if (v.length > 5) v = v.slice(0, 5) + '/' + v.slice(5);
+    el.value = v;
+  },
   populateCategories() {
     const type = document.getElementById('input-type').value;
     const filtered = this.categories.filter(c => c.type === type);
@@ -31,7 +88,7 @@ const app = {
   },
   setCurrentMonthYear() {
     const now = new Date();
-    document.getElementById('input-date').value = now.toISOString().slice(0, 10);
+    document.getElementById('input-date').value = toDMY(now.toISOString().slice(0, 10));
   },
   async loadMonths() {
     this.months = await API.months();
@@ -86,15 +143,15 @@ const app = {
     const categoryId = document.getElementById('input-category').value;
     if (!this.categories.find(c => c.id == categoryId && c.type === type)) return;
     const data = {
-      date: document.getElementById('input-date').value,
+      date: toYMD(document.getElementById('input-date').value),
       type,
       category_id: Number(categoryId),
       amount: parseFloat(document.getElementById('input-amount').value),
       notes: document.getElementById('input-notes').value || null,
-      due_date: document.getElementById('input-due-date').value || null,
+      due_date: toYMD(document.getElementById('input-due-date').value) || null,
       pix_key: document.getElementById('input-pix-key').value || null,
       barcode: document.getElementById('input-barcode').value || null,
-      planned_payment_date: document.getElementById('input-planned-payment').value || null,
+      planned_payment_date: toYMD(document.getElementById('input-planned-payment').value) || null,
       attachment: this.pendingAttachment !== undefined ? this.pendingAttachment : undefined
     };
     const txnId = document.getElementById('transaction-id').value;
@@ -112,9 +169,12 @@ const app = {
     document.getElementById('transaction-id').value = '';
     document.getElementById('transaction-submit').textContent = 'Add';
     document.getElementById('transaction-cancel').classList.add('hidden');
-    document.getElementById('input-date').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('input-date').value = toDMY(new Date().toISOString().slice(0, 10));
     document.getElementById('input-due-date').value = '';
     document.getElementById('input-planned-payment').value = '';
+    document.getElementById('input-type').value = 'expense';
+    this.updateTxnBadges('expense');
+    this.populateCategories();
     this.pendingAttachment = null;
     document.getElementById('attachment-name').classList.add('hidden');
     document.getElementById('remove-attachment').classList.add('hidden');
@@ -149,16 +209,17 @@ const app = {
   async editTransaction(t) {
     const full = await API.getTransaction(t.id);
     document.getElementById('transaction-id').value = full.id;
-    document.getElementById('input-date').value = full.date || '';
+    document.getElementById('input-date').value = toDMY(full.date) || '';
     document.getElementById('input-type').value = full.type;
+    this.updateTxnBadges(full.type);
     this.populateCategories();
     document.getElementById('input-category').value = full.category_id;
     document.getElementById('input-amount').value = full.amount;
     document.getElementById('input-notes').value = full.notes || '';
-    document.getElementById('input-due-date').value = full.due_date || '';
+    document.getElementById('input-due-date').value = toDMY(full.due_date) || '';
     document.getElementById('input-pix-key').value = full.pix_key || '';
     document.getElementById('input-barcode').value = full.barcode || '';
-    document.getElementById('input-planned-payment').value = full.planned_payment_date || '';
+    document.getElementById('input-planned-payment').value = toDMY(full.planned_payment_date) || '';
     this.pendingAttachment = full.attachment || undefined;
     document.getElementById('input-attachment').value = '';
     document.getElementById('attachment-name').textContent = full.attachment ? 'Comprovante anexado' : '';
@@ -227,6 +288,10 @@ const app = {
       this.populateCategories();
       document.getElementById('form-category').reset();
       document.getElementById('category-id').value = '';
+      document.getElementById('category-type').value = 'expense';
+      document.querySelectorAll('.type-badge').forEach(b => {
+        b.className = b.dataset.type === 'expense' ? 'type-badge px-3 py-1.5 rounded text-sm bg-rose-100 text-rose-700 border-rose-300 border' : 'type-badge px-3 py-1.5 rounded text-sm border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100';
+      });
       document.getElementById('category-submit').textContent = 'Add';
       document.getElementById('category-cancel').classList.add('hidden');
     } catch (err) {
@@ -237,12 +302,19 @@ const app = {
     document.getElementById('category-id').value = id;
     document.getElementById('category-name').value = name;
     document.getElementById('category-type').value = type;
+    document.querySelectorAll('.type-badge').forEach(b => {
+      b.className = b.dataset.type === type ? `type-badge px-3 py-1.5 rounded text-sm ${type === 'income' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-rose-100 text-rose-700 border-rose-300'} border` : 'type-badge px-3 py-1.5 rounded text-sm border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100';
+    });
     document.getElementById('category-submit').textContent = 'Save';
     document.getElementById('category-cancel').classList.remove('hidden');
   },
   cancelCategoryEdit() {
     document.getElementById('form-category').reset();
     document.getElementById('category-id').value = '';
+    document.getElementById('category-type').value = 'expense';
+    document.querySelectorAll('.type-badge').forEach(b => {
+      b.className = b.dataset.type === 'expense' ? 'type-badge px-3 py-1.5 rounded text-sm bg-rose-100 text-rose-700 border-rose-300 border' : 'type-badge px-3 py-1.5 rounded text-sm border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100';
+    });
     document.getElementById('category-submit').textContent = 'Add';
     document.getElementById('category-cancel').classList.add('hidden');
   },
