@@ -11,6 +11,11 @@ CREATE TABLE IF NOT EXISTS transactions (
   category_id INTEGER NOT NULL,
   amount REAL NOT NULL,
   notes TEXT,
+  due_date TEXT,
+  pix_key TEXT,
+  barcode TEXT,
+  planned_payment_date TEXT,
+  attachment TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (category_id) REFERENCES categories(id)
 );
