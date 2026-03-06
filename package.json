@@ -4,7 +4,7 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "concurrently \"nodemon --watch server server/index.js\" \"browser-sync start -c bs-config.js\"",
-    "seed": "node server/seed.js"
+    "postinstall": "cd server && yarn install"
   },
   "devDependencies": {
     "browser-sync": "^3.0.3",

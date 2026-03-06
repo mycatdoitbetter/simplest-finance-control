@@ -1,11 +1,19 @@
 const Database = require('better-sqlite3');
+const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, '..', 'data', 'finance.db');
+const dataDir = path.join(__dirname, '..', 'data');
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
+const dbPath = path.join(dataDir, 'finance.db');
 const db = new Database(dbPath);
 
 db.pragma('journal_mode = WAL');
+
+try {
+  const exists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='categories'").get();
+  if (!exists) db.exec(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
+} catch (_) {}
 
 try {
   const info = db.prepare("PRAGMA table_info(transactions)").all();

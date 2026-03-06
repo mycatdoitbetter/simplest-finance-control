@@ -20,5 +20,5 @@ CREATE TABLE IF NOT EXISTS transactions (
   FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
-CREATE INDEX idx_transactions_date ON transactions(date);
-CREATE INDEX idx_transactions_type ON transactions(type);
+CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
+CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
